@@ -9,17 +9,6 @@ double time_01(double t, double min, double length) {
 	return Clamp(t - min, 0., length) / (length);
 }
 
-struct OuterFrame {
-	Polygon outerframe_region;
-	OuterFrame() {
-		RoundRect drawable_region = RoundRect{RectF{-0.45, -0.45, 0.9, 0.9}, 0.01};
-		outerframe_region = RectF{-1, -1, 2, 2}.asPolygon();
-		assert(outerframe_region.addHole(drawable_region));
-	}
-	void draw(const Color& c) {
-		outerframe_region.draw(c);
-	}
-};
 
 struct Recorder {	
 	const Rect frame_rect{0, 0, 600, 600};

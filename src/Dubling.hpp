@@ -41,8 +41,15 @@ ArrowsOnLines BasicArrowsOnLine(const Line& line, size_t N, const Color& c) {
 struct Dubling {
 	Mat3x2 affine;
 	int32_t N = 6;
-	const HSV arrow_color1 = HSV(175, 1.00, 0.87, 0.0);
-	const HSV arrow_color2 = Color(22,62,100);
+	const HSV arrow_color1 = HSV(26, 0.02, 1.00, 0.0);
+	const Array<HSV> arrow_color2 = {
+        HSV{26, 0.02, 1.00},
+        HSV{26, 0.12, 0.99},
+        HSV{26, 0.22, 0.97},
+        HSV{26, 0.42, 0.94},
+        HSV{26, 0.62, 0.90},
+        HSV{26, 0.82, 0.85},
+    };
 	Dubling(){
 		const Mat3x2 translate = Mat3x2::Translate({0, 0.216});
 		const Mat3x2 rotate1 = Mat3x2::Rotate(Math::Pi / 5);
@@ -55,14 +62,13 @@ struct Dubling {
 		int32_t i,  double t_position, double t_color
 	) {
 		const double x = [&](){
-			if (i >= N - 2) { return 0.4; }
-			if (i == N - 3) { return 1.0; }
+			if (i >= N - 2) { return 0.5; }
 			return 1.7;
 		}();
 		const double y = std::lerp(line_y_at(i-1), line_y_at(i), t_position);
 		const Line line { {-x, y}, {x, y} };
 		const size_t line_count = 1ull << (N - 1 - i);
-		const ColorF c = arrow_color1.lerp(arrow_color2, t_color);
+		const ColorF c = arrow_color1.lerp(arrow_color2[i], t_color);
 		return BasicArrowsOnLine(line, line_count, c);
 	}
 	void draw(const double t) {
@@ -74,4 +80,7 @@ struct Dubling {
 			LerpingArrowsOnLine(i, t1, t1).draw(t1);
 		}
 	}
+    void draw_bloom(const double t) {
+        
+    }
 };

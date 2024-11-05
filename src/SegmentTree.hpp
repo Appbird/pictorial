@@ -112,13 +112,13 @@ struct SegmentTree {
 	Mat3x2 affine;
 	const int32_t stairs = 4;
 	const double y_max = 0.30;
-	const double y_min = -0.25;
+	const double y_min = -0.15;
 	const double width = 0.80;
 	const Color query_color = HSV(273, 0, 1.00);
     const Array<Color> segment_color = {
-		HSV(0, 0.44, 0.70),
-		HSV(55, 0.44, 0.70),
-		HSV(121, 0.44, 0.70),
+		HSV(0, 0.44, 0.50),
+		HSV(55, 0.44, 0.50),
+		HSV(121, 0.44, 0.50),
 		HSV(173, 0.45, 0.70),
 	};
 
@@ -131,32 +131,42 @@ struct SegmentTree {
     KeyAnimation kf_qfalling_margin { binary_iplt };
     KeyAnimation kf_qfalling_deflecting { easeinoutquad_iplt };
 
+    KeyAnimation kf_qappear_width { easeinoutquad_iplt };
+    KeyAnimation kf_qappear_y { easeinoutquad_iplt };
+    KeyAnimation kf_stappear { easeinoutquad_iplt };
+
     double locate_y(int32_t i) const {
         return (y_max - y_min) * double(i)/(stairs-1) + y_min; 
     }
 
 	SegmentTree() {
-		const Mat3x2 translate = Mat3x2::Translate({0, 0.216});
-		const Mat3x2 rotate1 = Mat3x2::Rotate(Math::Pi / 5);
-		affine = translate * rotate1;
-        qfalling_y_keytime = {1.0, 2.0, 2.8, 3.6};
+		affine = Mat3x2::Identity();
+        qfalling_y_keytime = {1.5, 2.1, 2.7, 3.3};
         kf_qfalling_y.register_frames(qfalling_y_keytime,
-            {locate_y(0) - 0.10, locate_y(1), locate_y(2), locate_y(3)}
+            {-0.30, locate_y(1), locate_y(2), locate_y(3)}
         );
         kf_qfalling_margin.register_frames({-1, 0}, {-queries_margin, 0.});
         kf_qfalling_deflecting.register_frames({0, 0.2, 0.4}, {0., 0.03, 0.0});
+        kf_qappear_width.register_frames({0, 0.5},  {0, 7.0/8});
+        kf_qappear_y.register_frames({0.7, 1.2},    {-0.10, -0.30});
+        kf_stappear.register_frames({0.7, 1.2},     {0, 1.0});
 	}
 	Segment default_segment(const Color& color) {
 		return {.rect = {}, .c = color};
 	}
-
     void draw_segment_tree(const double t) {
         // セグ木
 		for (int32_t stair = 0; stair < stairs; stair++) {
             const int32_t segment_count = (1ull << stair);
-            const Segment base_segment =
+            const double y0 = 0;
+            const double y = (locate_y(stair) - y0) * kf_stappear.refer(t) + y0;
+            Segment base_segment =
                 default_segment(segment_color[stair])
-                .Locate(-width/2, width/2, locate_y(stair), 0.05);
+                .Locate(-width/2, width/2, y, 0.05);
+            if (stair != 3) {
+                base_segment.c.a = kf_stappear.refer(t);
+            }
+            
             
             for (int32_t j = 0; j < segment_count; j++) {
                 const double begin = double(j) / segment_count;
@@ -179,7 +189,17 @@ struct SegmentTree {
             }
 		}
     }
-    void draw_query(const double t) {
+
+    void draw_query_first(const double t) {
+        const double x_left = (-0.5) * width;
+        const double x_length = width * kf_qappear_width.refer(t);
+        const double y = kf_qappear_y.refer(t);
+        Segment s = default_segment(query_color)
+            .Locate(x_left, x_left + x_length, y, 0.015);
+        s.draw();
+        
+    }
+    void draw_query_second(const double t) {
         Array<std::pair<double, double>> x_segment = {
             {-width/2, 0},
             {0, width/4},
@@ -202,12 +222,16 @@ struct SegmentTree {
                 .draw();
         }
     }
+    void draw_query(const double t) {
+        if (t < qfalling_y_keytime[0]) { draw_query_first(t); }
+        else { draw_query_second(t); }
+    }
 
 	void draw(const double t) {
+        Transformer2D transformer{affine};
         draw_segment_tree(t);
         draw_query(t);
     }
     void draw_bloom(const double t) {
-        draw_query(t);
     }
 };
