@@ -5,6 +5,7 @@ Mat3x2 NormalizedCoord(RectF region) {
 	return Mat3x2::Scale(region.size.y) * Mat3x2::Translate(region.center());
 }
 double time_01(double t, double min, double length) {
+    if (length == 0) { return 0; }
 	return Clamp(t - min, 0., length) / (length);
 }
 
