@@ -13,7 +13,7 @@ struct Arrow{
 	}
 };
 Arrow BasicArrow(const Line& line, const Color& c) {
-	return {line, c, 0.05};
+	return {line, c, 0.08};
 }
 
 struct ArrowsOnLines {
@@ -40,7 +40,7 @@ ArrowsOnLines BasicArrowsOnLine(const Line& line, size_t N, const Color& c) {
 
 struct Dubling {
 	Mat3x2 affine;
-	int32_t N = 6;
+	int32_t N = 4;
 	const HSV arrow_color1 = HSV(26, 0.02, 1.00, 0.0);
 	const Array<HSV> arrow_color2 = {
         HSV{26, 0.02, 1.00},
@@ -61,10 +61,7 @@ struct Dubling {
 	ArrowsOnLines LerpingArrowsOnLine(
 		int32_t i,  double t_position, double t_color
 	) {
-		const double x = [&](){
-			if (i >= N - 2) { return 0.5; }
-			return 1.7;
-		}();
+		const double x = 0.75;
 		const double y = std::lerp(line_y_at(i-1), line_y_at(i), t_position);
 		const Line line { {-x, y}, {x, y} };
 		const size_t line_count = 1ull << (N - 1 - i);
