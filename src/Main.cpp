@@ -1,8 +1,8 @@
 #include <Siv3D.hpp>
-#include "SegmentTree.hpp"
 #include "LightBloom.hpp"
 const double anime_length = 5.0;
-using AnimationClass = SegmentTree;
+#include "BinarySearch.hpp"
+using AnimationClass = BinarySearch;
 
 // 描画された最大のアルファ成分を保持するブレンドステートを作成する
 BlendState MakeBlendState()
@@ -15,12 +15,12 @@ BlendState MakeBlendState()
 }
 
 void Main() {
-	const HSV drawable_region_color = HSV{ 224, 0.44, 0.21 };	
+	const HSV drawable_region_color = HSV{ 235, 0.35, 0.20 };	
 	Scene::SetBackground(drawable_region_color);
 	Recorder recorder;
 	AnimationClass animation;
 	LightBloom lightbloom{ recorder.frame_rect.size };
-    RenderTexture render_texture{ recorder.frame_rect.size };
+    MSRenderTexture render_texture{ recorder.frame_rect.size };
     RoundRect mini_window{RectF{-0.45, -0.45, 0.9, 0.9}, 0.01};
 
     const auto draw_mainloop = [&](double t) {
@@ -29,6 +29,7 @@ void Main() {
             {
                 const Transformer2D transformer2d{ NormalizedCoord(recorder.frame_rect) };
                 animation.draw(t);
+                // Bloomを書く。
                 {
                     const ScopedRenderTarget2D target{ lightbloom.get_render_target() };
                     animation.draw_bloom(t);
@@ -37,6 +38,8 @@ void Main() {
             lightbloom.blur();
             lightbloom.draw_bloom();
         }
+        Graphics2D::Flush();
+        render_texture.resolve();
         {
             const Transformer2D transformer2d{ NormalizedCoord(recorder.frame_rect) };
             mini_window(render_texture.uv(RectF{0, 0, 1, 1})).draw();

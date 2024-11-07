@@ -8,18 +8,18 @@
 struct SegmentTree {
 	Mat3x2 affine;
 	const int32_t stairs = 4;
-    const double query_height = 0.030;
+    const double query_height = 0.020;
     const double segment_height = 0.080;
 
 	const double y_max = 0.40;
 	const double y_min = -0.20;
-	const double width = 0.90;
-	const Color query_color = HSV(273, 0, 1.00);
+	const double width = 0.95;
+	const Color query_color = HSV(252, 0.18, 0.65);
     const Array<Color> segment_color = {
-		HSV(0, 0.44, 0.70),
-		HSV(55, 0.44, 0.70),
-		HSV(121, 0.44, 0.70),
-		HSV(173, 0.45, 0.80),
+		HSV(331, 0.19, 0.9),
+		HSV(42, 0.34, 0.9),
+		HSV(128, 0.18, 0.90),
+		HSV(171, 0.22, 0.90),
 	};
     double locate_y(int32_t i) const {
         return (y_max - y_min) * double(i)/(stairs-1) + y_min; 
@@ -86,21 +86,27 @@ struct SegmentTree {
             
             s.draw();
         }
-    } 
+    }
+    // セグメントツリーの区間が時間経過に合わせてどう移動するかを示す。
+    KeyAnimation kf_stappear {
+        ease_iplt<EaseOutBack>, {0.7, 1.2}, {0, 1.0}
+    };
+    // セグメントツリーの各区間が時間経過に合わせてどう不透明度が変化するかを示す。
+    KeyAnimation kf_stappear_color {
+        ease_iplt<EaseOutBack>, {0.7, 1.2}, {0, 1.0}
+    };
+    double stair_standard_y(const int32_t stair, const double t) {
+        const double y0 = 0;
+        return std::lerp(y0, locate_y(stair), Math::Square(kf_stappear.refer(t)));
+    }
+    double stair_alpha(const int32_t stair, const double t) {
+        const double y0 = 0;
+        return std::lerp(y0, locate_y(stair), kf_stappear_color.refer(t));
+    }
     void draw_segment_tree(const double t) {
-        // セグメントツリーの区間が時間経過に合わせてどう移動するかを示す。
-        KeyAnimation kf_stappear {
-            ease_iplt<EaseOutBack>, {0.7, 1.2}, {0, 1.0}
-        };
-        // セグメントツリーの各区間が時間経過に合わせてどう不透明度が変化するかを示す。
-        KeyAnimation kf_stappear_color {
-            ease_iplt<EaseOutBack>, {0.7, 1.2}, {0, 1.0}
-        };
 		for (int32_t stair = 0; stair < stairs; stair++) {
-            const double y0 = 0;
             // 登場時に座標0から現れるように調節。終わった後は、キーフレームkf_stappearは常に値1を出し続ける。
-            double y = std::lerp(y0, locate_y(stair), Math::Square(kf_stappear.refer(t)));
-            const double alpha = std::lerp(y0, locate_y(stair), kf_stappear_color.refer(t));
+            const double y = stair_standard_y(stair, t);
             Segment base_segment =
                 default_segment(segment_color[stair])
                 .Locate(-width/2, width/2, y, segment_height);
@@ -113,7 +119,6 @@ struct SegmentTree {
             draw_deflecting_segments_on_line(t, base_segment, stair);
 		}
     }
-
     void draw_query_first(const double t) {
         // 初めてクエリが登場する時の幅の遷移
         KeyAnimation kf_qappear_width {
@@ -123,6 +128,10 @@ struct SegmentTree {
         KeyAnimation kf_qappear_y {
             ease_iplt<EaseOutBack>, {0.7, 1.2}, {0.0, 1.0}
         };
+        // クエリが登場したあと、クエリの影をどのように消すか
+        KeyAnimation kf_qshadow_alpha {
+            ease_iplt<EaseInSine>, {0.7, 1.5}, {0.2, 0.0}
+        };
 
         const double x_left = (-0.5) * width;
         const double x_length = width * kf_qappear_width.refer(t);
@@ -131,7 +140,10 @@ struct SegmentTree {
             default_segment(query_color)
             .Locate(x_left, x_left + x_length, y, query_height);
         s.draw();
-        
+        RectF shadow = RectF::FromPoints( {s.rect.x, s.rect.y}, {s.rect.x + s.rect.w, stair_standard_y(3, t) - segment_height / 2});
+        ColorF query_shadow_c = query_color;
+        query_shadow_c.a = kf_qshadow_alpha.refer(t);
+        shadow.draw(query_shadow_c);
     }
     void draw_query_second(const double t) {
         // クエリが落下する時の遷移
@@ -160,12 +172,12 @@ struct SegmentTree {
             const double margin_left    = (i == 0) ? 0 : query_margin;
             const double margin_right   = (i == x_segment.size() - 1) ? 0 : query_margin;
             // 基本的な配置
-            default_segment(query_color)
+            Segment s = default_segment(query_color)
                 .Locate(left_x, right_x, y, query_height)
                 .TakeMargin(margin_left, margin_right)
                 // 押し下げ分
-                .MoveCenter({0., deflecting}) 
-                .draw();
+                .MoveCenter({0., deflecting});
+            s.draw();
         }
     }
     void draw_query(const double t) {
