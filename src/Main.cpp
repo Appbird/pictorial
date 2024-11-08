@@ -1,6 +1,6 @@
 #include <Siv3D.hpp>
 #include "LightBloom.hpp"
-const double anime_length = 5.0;
+const double anime_length = 10.0;
 #include "BinarySearch.hpp"
 using AnimationClass = BinarySearch;
 
