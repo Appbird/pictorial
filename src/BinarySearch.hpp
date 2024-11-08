@@ -8,7 +8,7 @@ struct Pointer {
     Texture icon;
     ColorF color;
 
-    Vec2 size = {0.06, 0.06};
+    Vec2 size = {0.09, 0.09};
     Vec2 margin_icon_tri = Vec2{0., -0.15};
     
     Triangle base_triangle() const {
@@ -43,11 +43,12 @@ struct Pointer {
 
     }
     void Emphasising(const double t) {
+        KeyAnimation scaling{ease_iplt<EaseInQuint>, {0, 0.3, 0.5, 1.0}, {0.1, 2.0, 1.9, 1.0 }};
         Vec2 icon_center = to + margin_icon_tri;
         base_triangle().draw(color);
 
         TextureRegion tex = base_icon();
-        const double t1 = Math::Square(EaseOutBack(t));
+        const double t1 = scaling.refer(t);
         tex.resized(t1 * tex.size.x).draw(Arg::center = icon_center + Vec2{0, 0.05 * (1-t1)}, color);
     }
 
@@ -99,22 +100,24 @@ struct Axis {
     double width;
     double axis_y;
     double center;
+    double x_min = 0.0;
+    double x_max = 1.0;
     HSV axis_color;
     void draw() {
         Line{{-width/2, axis_y}, {width/2, axis_y}}.draw(0.010, axis_color);
     }
     Vec2 point_on_axis(const double t) {
-        return Vec2{std::lerp(-width/2, width/2, t) + center, axis_y};
+        return Vec2{std::lerp(-width/2, width/2, scaled_t(t)) + center, axis_y};
     }
     void draw_segment(double t1, double t2, ColorF color) {
-        Line{point_on_axis(t1), point_on_axis(t2)}.draw(0.015, color);
+        Line{point_on_axis(t1), point_on_axis(t2)}.draw(0.03, color);
     }
-    double scaled_t(const double t, const double x_min, const double x_max) {
+    double scaled_t(const double t) {
         return (t - x_min) / (x_max - x_min);
     }
-    void draw_scaling(const double t, const double x_min, const double x_max, const double height = 0.015) {
-        const Vec2 start = point_on_axis(scaled_t(t, x_min, x_max)) + Vec2{0, -height};
-        const Vec2 end = point_on_axis(scaled_t(t, x_min, x_max)) + Vec2{0, height};
+    void draw_scaling(const double t, const double height = 0.015) {
+        const Vec2 start = point_on_axis(t) + Vec2{0, -height};
+        const Vec2 end = point_on_axis(t) + Vec2{0, height};
         Line{start, end}.draw(0.01, axis_color);
     }
     // 半開区間？
@@ -133,108 +136,130 @@ struct BinarySearch {
 
     HSV ok_color = HSV{129, 0.18, 0.94};
     HSV ng_color = HSV{331, 0.19, 1.00};
-    HSV axis_color = HSV{42, 0.34, 1.00};
+    HSV axis_color = HSV{42, 0.54, 1.00};
     
     Axis axis{ .width = 1.0, .axis_y = 0.15, .axis_color = axis_color, .center = 0.0 };
     
     Pointer pointer_ok;
     Pointer pointer_ng;
-    Pointer pointer_mid;
+    Pointer pointer_mid1;
+    Pointer pointer_mid2;
     
     Interval ok_interval;
     Interval ng_interval;
     
     BinarySearch() {
         const Vec2 p_ok = axis.point_on_axis(0.1);
+        const Vec2 p_mid1 = axis.point_on_axis(0.5);
+        const Vec2 p_mid2 =  axis.point_on_axis(0.75);
         const Vec2 p_ng = axis.point_on_axis(0.9);
-        const Vec2 p_mid = (p_ok + p_ng) / 2;
         pointer_ok = Pointer{ .to = p_ok,   .icon = ok_icon,    .color = ok_color };
         pointer_ng = Pointer{ .to = p_ng,   .icon = ng_icon,    .color = ng_color };
-        pointer_mid = Pointer{ .to = p_mid, .icon = unresolved_icon, .color = axis_color };
+        pointer_mid1 = Pointer{ .to = p_mid1, .icon = unresolved_icon, .color = axis_color };
+        pointer_mid2 = Pointer{ .to = p_mid2, .icon = unresolved_icon, .color = axis_color };
         ok_interval = Interval{.from = p_ok, .c = ok_color, .height = 0.15};
         ng_interval = Interval{.from = p_ng, .c = ng_color, .height = 0.15};
     }
+    void draw_mid_points(const double t) {
+        // point1
+        match(t, {0, 0.8}, [&](double t, double start, double end) {
+            const double t_fall = EaseInQuint(time_01(t, start, end - start));
+            pointer_mid1.icon = unresolved_icon;
+            pointer_mid1.color = axis_color;
+            pointer_mid1.Falling(t_fall, -0.6);
+        });
+        match(t, {0.8, 1.8}, [&](double t, double start, double end) {
+            const double t_osc      = time_01(t, start, end - start);
+            pointer_mid1.Oscilating(t_osc);
+        });
+        match(t, {1.8, 2.9}, [&](double t, double start, double end) {
+            const double t_emp      = time_01(t, start, end - start);
+            pointer_mid1.icon = ok_icon;
+            pointer_mid1.color = ok_color;
+            pointer_mid1.Emphasising(t_emp);
+        });
+        match(t, {2.9, 10.0}, [&](double t, double start, double end) {
+            pointer_mid1.draw();
+        });
+
+        // point2
+        match(t, {4.0, 4.8}, [&](double t, double start, double end) {
+            const double t_fall = EaseInQuint(time_01(t, start, end - start));
+            pointer_mid2.icon = unresolved_icon;
+            pointer_mid2.color = axis_color;
+            pointer_mid2.Falling(t_fall, -0.6);
+        });
+        match(t, {4.8, 5.8}, [&](double t, double start, double end) {
+            const double t_osc      = time_01(t, start, end - start);
+            pointer_mid2.Oscilating(t_osc);
+        });
+        match(t, {5.8, 6.9}, [&](double t, double start, double end) {
+            const double t_emp      = time_01(t, start, end - start);
+            pointer_mid2.icon = ng_icon;
+            pointer_mid2.color = ng_color;
+            pointer_mid2.Emphasising(t_emp);
+        });
+        match(t, {6.9, 10.0}, [&](double t, double start, double end) {
+            pointer_mid2.draw();
+        });
+    }
     // 5秒で1ループ
-    void draw_one_loop(const double t, const bool is_mid_ok) {
-        const double t_fall_start   = 0.4;
-        const double t_osc_start    = 1.2;
-        const double t_fall     = EaseInQuint(time_01(t, t_fall_start, 0.8));
-        const double t_osc      = time_01(t, 1.2, 0.6);
-        // 強調されてアイコンが変わる時間
-        const double t_emp      = time_01(t, 2.2, 0.6);
-        const double t_segment  = EaseInQuart(time_01(t, 2.0, 1.0));
-        const double t_scale    = EaseInOutQuad(time_01(t, 2.9, 1.0));
-
-        const double margin = std::lerp(0.10, 0.05, t_scale);
-        const double min_x_after = is_mid_ok ? 0.50 : 0.10;
-        const double max_x_after = is_mid_ok ? 0.90 : 0.50; 
-        const double min_x = std::lerp(0.0, min_x_after - margin, t_scale);
-        const double max_x = std::lerp(1.0, max_x_after + margin, t_scale);
-        auto f = [&](double x) { return axis.scaled_t(x, min_x, max_x); };
-
-        pointer_ok.to.x = axis.point_on_axis(f(0.1)).x;
-        pointer_mid.to.x = axis.point_on_axis(f(0.5)).x;
-        pointer_ng.to.x = axis.point_on_axis(f(0.9)).x;
-
+    void draw(const double t) {
+        // ポインタの描画
+        const double t_scale_start = 7.0;
+        const double t_scale    = EaseInOutQuad(time_01(t, t_scale_start, 1.0));
+        const double margin = std::lerp(0.10, 0.10 * (0.20 / 0.8), t_scale);
+        const double min_x_after = 0.50;
+        const double max_x_after = 0.70; 
+        axis.x_min = std::lerp(0.0, min_x_after - margin, t_scale);
+        axis.x_max = std::lerp(1.0, max_x_after + margin, t_scale);
+        
+        pointer_ok.to.x = axis.point_on_axis(0.1).x;
+        pointer_mid1.to.x = axis.point_on_axis(0.5).x;
+        pointer_mid2.to.x = axis.point_on_axis(0.70).x;
+        pointer_ng.to.x = axis.point_on_axis(0.9).x;
         axis.draw();
         pointer_ok.draw();
+        draw_mid_points(t);
         pointer_ng.draw();
-        if (t < 1.6) {
-            pointer_mid.Falling(t_fall, -0.6);
-        } else if (t < 2.2) {
-            pointer_mid.Oscilating(t_osc);
-        } else if (t < 3.0) {
-            pointer_mid.Emphasising(t_emp);
-        } else {
-            pointer_mid.draw();
-        }
-
-        // 大きい目盛
+        // 目盛
         {
             const int32_t scale_count = 6;
             for (int32_t i = 0; i <= scale_count; i++) {
                 const double s = std::lerp(0.1, 0.9, double(i)/scale_count);
-                axis.draw_scaling(s, min_x, max_x);
+                axis.draw_scaling(s);
             }
         }
         // 小さい目盛
         {
-            const int32_t scale_count = 12;
+            const int32_t scale_count = 24;
             for (int32_t i = 0; i <= scale_count; i++) {
                 const double s = std::lerp(0.1, 0.9, double(i)/scale_count);
-                axis.draw_scaling(s, min_x, max_x, std::lerp(0, 0.015, t_scale));
+                axis.draw_scaling(s, std::lerp(0, 0.015, t_scale));
             }
         }
         // 区間の描画
         {   
-            const double t_interval_from = Math::Sqrt(t_scale);
-            if (is_mid_ok) {
-                ok_interval.from.x = axis.point_on_axis(f(std::lerp(0.1, 0.5, t_interval_from))).x;
-                ng_interval.from.x = axis.point_on_axis(f(0.9)).x;
-            } else {
-                ok_interval.from.x = axis.point_on_axis(f(0.1)).x;
-                ng_interval.from.x = axis.point_on_axis(f(std::lerp(0.9, 0.5, t_interval_from))).x;
-            }
+            const double t_segment1_start = 2.9;
+            const double t_segment2_start = 6.9;
+            const double t1 = EaseInOutQuint(time_01(t, t_segment1_start, 1.0));
+            const double t2 = EaseInOutQuint(time_01(t, t_segment2_start, 1.0));
+            ok_interval.from.x = axis.point_on_axis(std::lerp(0.1, 0.5, t1)).x;
+            ng_interval.from.x = axis.point_on_axis(std::lerp(0.9, 0.70, t2)).x;
+            
             ok_interval.draw_left();
             ng_interval.draw_right();    
         }
         // 区間の下の線の描画
         {
-            axis.draw_segment(f(0.0), f(0.1), ok_color);
-            axis.draw_segment(f(0.9), f(1.0), ng_color);
-            if (is_mid_ok) {
-                axis.draw_segment(f(0.5 * (1 - t_segment)), f(0.5), ok_color);
-            } else {
-                axis.draw_segment(f(0.5), f(t_segment * 0.5 + 0.5), ng_color);
-            }
-        }
-    }
-    void draw(const double t) {
-        double one_loop_length  = 5.0;
-        if (t < one_loop_length) {
-            draw_one_loop(t, true);
-        } else {
-            draw_one_loop(t - one_loop_length, false);
+            const double t_segment1_start = 1.8;
+            const double t_segment1  = EaseInQuart(time_01(t, t_segment1_start, 1.0));
+            const double t_segment2_start = 5.8;
+            const double t_segment2  = EaseInQuart(time_01(t, t_segment2_start, 1.0));
+            axis.draw_segment(0.0, 0.1, ok_color);
+            axis.draw_segment(0.9, 1.0, ng_color);
+            axis.draw_segment(0.5 * (1 - t_segment1), 0.5, ok_color);
+            axis.draw_segment(0.70, 0.70 + 0.25 * t_segment2, ng_color);
         }
 
     }

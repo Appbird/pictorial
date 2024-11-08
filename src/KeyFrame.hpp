@@ -45,3 +45,9 @@ double ease_iplt(double current, double next, double t) {
 double binary_iplt(double current, double next, double t) {
     return (t > 1 - 1e-6) ? next : current;
 };
+
+
+void match(double t, std::pair<double, double> time, std::function<void(double, double, double)> animator) {
+    auto [start, end] = time;
+    if (InRange(t, start, end)) { animator(t, start, end); }
+}
