@@ -77,7 +77,7 @@ struct Interval {
         color.v *= 2; color.s *= 0.8;
         Line{from, from + Vec2{0.05, height}}.draw(0.005, color);
         Line{from + Vec2{0.05, height}, {x_right_edge, from.y + height}}.draw(0.005, color);
-        Circle{from, 0.018}.draw(c);
+        //Circle{from, 0.018}.draw(c);
     }
     void draw_left() {
         Polygon region = Polygon{
