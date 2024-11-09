@@ -2,6 +2,8 @@
 #include <Siv3D.hpp>
 #include "KeyFrame.hpp"
 #include "Segment.hpp"
+const double anime_length = 8.0;
+
 
 struct Pointer {
     Vec2 to;

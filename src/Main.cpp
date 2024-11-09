@@ -1,8 +1,7 @@
 #include <Siv3D.hpp>
 #include "LightBloom.hpp"
-const double anime_length = 8.0;
-#include "BinarySearch.hpp"
-using AnimationClass = BinarySearch;
+#include "Dubling.hpp"
+using AnimationClass = Dubling;
 
 // 描画された最大のアルファ成分を保持するブレンドステートを作成する
 BlendState MakeBlendState()

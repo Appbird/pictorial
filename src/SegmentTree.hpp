@@ -4,6 +4,7 @@
 #include "utility.hpp"
 #include "Segment.hpp"
 #include "KeyFrame.hpp"
+const double anime_length = 5.0;
 
 struct SegmentTree {
 	Mat3x2 affine;

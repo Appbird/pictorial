@@ -1,6 +1,7 @@
 #pragma once
 # include <Siv3D.hpp> // Siv3D v0.6.15
 # include "utility.hpp"
+const double anime_length = 5.0;
 
 struct Arrow{
 	Line line;
@@ -41,14 +42,11 @@ ArrowsOnLines BasicArrowsOnLine(const Line& line, size_t N, const Color& c) {
 struct Dubling {
 	Mat3x2 affine;
 	int32_t N = 4;
-	const HSV arrow_color1 = HSV(26, 0.02, 1.00, 0.0);
 	const Array<HSV> arrow_color2 = {
-        HSV{26, 0.02, 1.00},
-        HSV{26, 0.12, 0.99},
-        HSV{26, 0.22, 0.97},
-        HSV{26, 0.42, 0.94},
-        HSV{26, 0.62, 0.90},
-        HSV{26, 0.82, 0.85},
+		HSV(171, 0.15, 1.00),
+		HSV(128, 0.15, 1.00),
+		HSV(42, 0.15, 1.0),
+        HSV(331, 0.15, 1.0),
     };
 	Dubling(){
 		const Mat3x2 translate = Mat3x2::Translate({0, 0.216});
@@ -61,10 +59,12 @@ struct Dubling {
 	ArrowsOnLines LerpingArrowsOnLine(
 		int32_t i,  double t_position, double t_color
 	) {
-		const double x = 0.75;
+		const double x = 0.60;
 		const double y = std::lerp(line_y_at(i-1), line_y_at(i), t_position);
 		const Line line { {-x, y}, {x, y} };
 		const size_t line_count = 1ull << (N - 1 - i);
+        ColorF arrow_color1 = arrow_color2[i];
+        arrow_color1.a = 0.0;
 		const ColorF c = arrow_color1.lerp(arrow_color2[i], t_color);
 		return BasicArrowsOnLine(line, line_count, c);
 	}
