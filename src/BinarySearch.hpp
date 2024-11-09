@@ -47,10 +47,9 @@ struct Pointer {
     void Emphasising(const double t) {
         KeyAnimation scaling{ease_iplt<EaseInQuint>, {0, 0.3, 0.5, 1.0}, {0.1, 2.0, 1.9, 1.0 }};
         Vec2 icon_center = to + margin_icon_tri;
-        base_triangle().draw(color);
-
         TextureRegion tex = base_icon();
         const double t1 = scaling.refer(t);
+        base_triangle().movedBy({0, 0.01 * (1-t1)}).draw(color);
         tex.resized(t1 * tex.size.x).draw(Arg::center = icon_center + Vec2{0, 0.05 * (1-t1)}, color);
     }
 
