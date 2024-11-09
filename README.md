@@ -8,7 +8,7 @@ from [https://x.com/for_i_in_loop/status/1851461936346775630](https://x.com/for_
 競技プログラミングの典型テクニックをGIFアイコン化してみる試み。
 
 ### 二分探索
-![](./App/dst/binarySearch.gif)
+![](./App/dst/BinarySearch.gif)
 
 ### セグメントツリー
 ![](./App/dst/segtree.gif)
