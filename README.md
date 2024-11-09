@@ -1,6 +1,7 @@
 # pitorial
 手軽にプログラミング関連の図やアニメーションを作るための実験用リポジトリ。
 現状、このリポジトリに再利用可能なコードはなく、再利用可能にするための方策を検討しています。
+アニメーションの描画には創造のための C++フレームワーク [OpenSiv3D](https://siv3d.github.io/ja-jp/)を用いています。
 
 # 作例
 from [https://x.com/for_i_in_loop/status/1851461936346775630](https://x.com/for_i_in_loop/status/1851461936346775630)
