@@ -1,7 +1,9 @@
-#include <Siv3D.hpp>
-#include "LightBloom.hpp"
-#include "BinarySearch.hpp"
-using AnimationClass = BinarySearch;
+# include <Siv3D.hpp>
+# include "LightBloom.hpp"
+# include "utility.hpp"
+# include "BFS.hpp"
+# include "Interval.hpp"
+using AnimationClass = BFS;
 
 // 描画された最大のアルファ成分を保持するブレンドステートを作成する
 BlendState MakeBlendState()
@@ -17,10 +19,10 @@ void Main() {
 	const HSV drawable_region_color = HSV{ 235, 0.35, 0.20 };	
 	Scene::SetBackground(drawable_region_color);
 	Recorder recorder;
-	AnimationClass animation;
 	LightBloom lightbloom{ recorder.frame_rect.size };
     MSRenderTexture render_texture{ recorder.frame_rect.size };
     RoundRect mini_window{RectF{-0.45, -0.45, 0.9, 0.9}, 0.01};
+	AnimationClass animation;
 
     const auto draw_mainloop = [&](double t) {
         {
@@ -47,16 +49,16 @@ void Main() {
 
 	while (System::Update()) {
 		ClearPrint();
-		const double t = Math::Fmod(Scene::Time(), anime_length);
+		const double t = Math::Fmod(Scene::Time(), animation.anime_length);
         draw_mainloop(t);
 	}
 	
-	for (int32_t f = 0; f < recorder.fps*anime_length; f++)
+	for (int32_t f = 0; f < recorder.fps*animation.anime_length; f++)
 	{
         const ScopedRenderTarget2D target{ recorder.frame };
         const ScopedRenderStates2D state{ MakeBlendState() };
         recorder.clear_frame(ColorF{0.0, 0.0});
-		const double t = Math::Fmod(f / recorder.fps, anime_length);
+		const double t = Math::Fmod(f / recorder.fps, animation.anime_length);
         draw_mainloop(t);
 		recorder.shot();
 	}
