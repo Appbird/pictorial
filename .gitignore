@@ -2,5 +2,5 @@ build
 App/empty.app
 App/engine
 App/example
-./**/.DS_Store
 .DS_Store
+a.gif
