@@ -8,6 +8,11 @@ double time_01(double t, double min, double length) {
     if (length == 0) { return 0; }
 	return Clamp(t - min, 0., length) / (length);
 }
+/// @brief  
+double MapInto01(double t, double min, double max) {
+    if (max == min) { return 0; }
+    return Clamp((t - min) / (max - min), 0.0, 1.0);
+}
 
 
 struct Recorder {	

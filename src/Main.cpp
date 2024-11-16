@@ -21,7 +21,7 @@ void Main() {
 	Recorder recorder;
 	LightBloom lightbloom{ recorder.frame_rect.size };
     MSRenderTexture render_texture{ recorder.frame_rect.size };
-    RoundRect mini_window{RectF{-0.45, -0.45, 0.9, 0.9}, 0.01};
+    RoundRect mini_window{RectF::FromPoints({-0.475, -0.475}, {0.475, 0.475}), 0.01};
 	AnimationClass animation;
 
     const auto draw_mainloop = [&](double t) {
