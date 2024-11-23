@@ -16,17 +16,16 @@ BlendState MakeBlendState()
 }
 
 void Main() {
-	const HSV drawable_region_color = HSV{ 235, 0.35, 0.20 };	
-	Scene::SetBackground(drawable_region_color);
 	Recorder recorder;
 	LightBloom lightbloom{ recorder.frame_rect.size };
     MSRenderTexture render_texture{ recorder.frame_rect.size };
     RoundRect mini_window{RectF::FromPoints({-0.475, -0.475}, {0.475, 0.475}), 0.01};
 	AnimationClass animation;
+	Scene::SetBackground(animation.drawable_region_color);
 
     const auto draw_mainloop = [&](double t) {
         {
-            const ScopedRenderTarget2D target{ render_texture.clear(drawable_region_color) };
+            const ScopedRenderTarget2D target{ render_texture.clear(animation.drawable_region_color) };
             {
                 const Transformer2D transformer2d{ NormalizedCoord(recorder.frame_rect) };
                 animation.draw(t);
