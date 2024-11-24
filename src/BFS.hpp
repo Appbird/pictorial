@@ -4,7 +4,7 @@
 # include "KeyFrame.hpp"
 
 
-/// 円v1とv2の外枠を繋ぐような線分を与えます。
+/// 円v1とv2の外枠を繋ぐような線分を与える。
 Line Connect(const Circle& v1, const Circle& v2);
 
 /// 線分の始点・終点をt:(1-t)に内分したときの始点側の線分を返す。
@@ -71,35 +71,41 @@ struct BFS {
         {.time = 0.0, .x = 0, ease_iplt<EaseInOutExpo>},
         {.time = 0.5, .x = 1, binary_iplt<double>},
     }};
-    KeyAnimator<double> kf_vertex_empasiser {{
-        {.time = 0.0, .x = 0.0, ease_iplt<EaseInQuint>},
-        {.time = 0.20, .x = 1.4, ease_iplt<EaseInQuint>},
-        {.time = 0.30, .x = 0.8, ease_iplt<EaseInQuint>},
-        {.time = 0.40, .x = 1.1, ease_iplt<EaseInQuint>},
-        {.time = 0.50, .x = 1.0, binary_iplt<double>},
-    }};
     KeyAnimator<double> kf_startend_vertex_empasiser {{
-        {.time = 0.0, .x = 0.0, ease_iplt<EaseInQuint>},
-        {.time = 0.20, .x = 1.2, ease_iplt<EaseInQuint>},
-        {.time = 0.30, .x = 1.0, ease_iplt<EaseInQuint>},
+        {.time = 0.0, .x = 0.0, ease_iplt<EaseInOutQuint>},
+        {.time = 0.10, .x = 0.3, ease_iplt<EaseInOutQuint>},
+        {.time = 0.40, .x = 0.4, ease_iplt<EaseInOutQuint>},
+        {.time = 0.50, .x = 1.4, ease_iplt<EaseInOutQuint>},
+        {.time = 0.70, .x = 1.0, ease_iplt<EaseInOutQuint>},
     }};
-    KeyAnimator<double> kf_explored_area_radius {{
-        {.time = 0.0, .x = 0.1, ease_iplt<EaseOutCubic>},
-        {.time = 0.9, .x = 0.1, ease_iplt<EaseOutCubic>},
-        {.time = 0.9 + 0.75, .x = 0.35, ease_iplt<EaseOutCubic>},
-        {.time = 1.9, .x = 0.35, ease_iplt<EaseOutCubic>},
-        {.time = 1.9+ 0.75, .x = 0.68, ease_iplt<EaseInOutCubic>},
-        {.time = 2.9, .x = 0.68, ease_iplt<EaseOutCubic>},
-        {.time = 2.9 + 0.75, .x = 1.02, ease_iplt<EaseOutCubic>},
-        {.time = 3.9, .x = 1.02, ease_iplt<EaseOutCubic>},
-        {.time = 3.9 + 0.75, .x = 1.3, ease_iplt<EaseOutCubic>},
+    KeyAnimator<double> kf_end2_vertex_empasiser {{
+        {.time = 0.0, .x = 0.5, ease_iplt<EaseInOutQuint>},
+        {.time = 0.10, .x = 0.5, ease_iplt<EaseInOutQuint>},
+        {.time = 0.40, .x = 0.6, ease_iplt<EaseInOutQuint>},
+        {.time = 0.50, .x = 1.4, ease_iplt<EaseInOutQuint>},
+        {.time = 0.70, .x = 1.0, ease_iplt<EaseInOutQuint>},
     }};
     KeyAnimator<double> kf_startend_vertex_dy {{
-        {.time = 0.0, .x = 0.015, ease_iplt<EaseInOutQuad>},
-        {.time = 0.30, .x = -0.03, ease_iplt<EaseInOutQuad>},
-        {.time = 0.40, .x = 0.005, ease_iplt<EaseInOutQuad>},
-        {.time = 0.45, .x = 0.00, ease_iplt<EaseInOutQuad>},
+        {.time = 0.0, .x = 0.00, ease_iplt<EaseInOutQuad>},
+        {.time = 0.30, .x = -0.06, ease_iplt<EaseInOutQuad>},
+        {.time = 0.40, .x = 0.01, ease_iplt<EaseInOutQuad>},
+        {.time = 0.60, .x = 0.00, ease_iplt<EaseInOutQuad>},
     }};
+    KeyAnimator<double> kf_explored_area_radius {{
+        {.time = 0.0, .x = 0.0, ease_iplt<EaseOutCubic>},
+        {.time = 0.3, .x = 0.0, ease_iplt<EaseOutCubic>},
+        {.time = 0.6, .x = 0.14, ease_iplt<EaseOutCubic>},
+        {.time = 0.7, .x = 0.12, ease_iplt<EaseOutCubic>},
+        {.time = 0.9, .x = 0.12, ease_iplt<EaseOutCubic>},
+        {.time = 0.9 + 0.75, .x = 0.37, ease_iplt<EaseOutCubic>},
+        {.time = 1.9, .x = 0.37, ease_iplt<EaseOutCubic>},
+        {.time = 1.9+ 0.75, .x = 0.70, ease_iplt<EaseInOutCubic>},
+        {.time = 2.9, .x = 0.70, ease_iplt<EaseOutCubic>},
+        {.time = 2.9 + 0.75, .x = 1.04, ease_iplt<EaseOutCubic>},
+        {.time = 3.9, .x = 1.04, ease_iplt<EaseOutCubic>},
+        {.time = 3.9 + 0.75, .x = 1.3, ease_iplt<EaseOutCubic>},
+    }};
+    
 
     //TODO: 生起時刻と起こるイベントという形で書ければコードの見通しが良くなりそう
     Array<double> evoke_edge_paint;
@@ -115,7 +121,7 @@ struct BFS {
 
         // イベント発生時刻を求めておく。
         const double start = 0.8;
-        const double d = 0.15;
+        const double d = 0.05;
         const double wave1 = 0.9;
         const double wave2 = 1.9;
         const double wave3 = 2.9;
@@ -126,9 +132,9 @@ struct BFS {
         };
         evoke_points_paint =  {
             start,
-            wave2, wave2 + d, wave2 + 2*d,
-            wave3, wave3 + d, wave3 + 2*d,
-            3.4
+            wave2 - 0.4, wave2 + d - 0.4, wave2 + 2*d - 0.4,
+            wave3 - 0.4, wave3 + d - 0.4, wave3 + 2*d - 0.4,
+            3.0
         };
     }
     Circle vertex_circle(const size_t idx) {
@@ -140,11 +146,9 @@ struct BFS {
     Circle anim_appear(const double t, const double shift, const Circle& C) {
         // FIXME: なんか円の半径がおかしい！
         const double t1 = kf_startend_vertex_empasiser.shift(shift).refer(t);
-        const auto expand_circle = [&](const Circle& C){ return Circle{C.center, C.r * t1}; };
         const double dy = kf_startend_vertex_dy.shift(shift).refer(t);
-        Circle C_prime = vertex_circle(vertices.size() - 1);
-        C_prime = expand_circle(C);
-        C_prime = MoveDown(C, dy);
+        Circle C_prime = Circle{C.center, C.r * t1};
+        C_prime = MoveDown(C_prime, dy);
         return C_prime;
     }
 
@@ -168,8 +172,9 @@ struct BFS {
             const Circle C = vertex_circle(i);
             C.drawFrame(0.01, vertex_color);
             HSV vert_color = map_vertex_to_color[i];
-            anim_appear(t, evoke_points_paint[i], C).draw(vert_color);
+            anim_appear(t, evoke_points_paint[i], C.stretched(0.01)).draw(vert_color);
         }
+        vertex_circle(vertices.size() - 1).draw(drawable_region_color).drawFrame(0.01, vertex_color);
     }
     void draw_explored_region(const double t) {
         Circle explored{origin_center, kf_explored_area_radius.refer(t)};
@@ -177,7 +182,7 @@ struct BFS {
             RectF whole_area{-0.5, -0.5, 1.0, 1.0};
             const auto regions = Geometry2D::Xor(whole_area, explored.asPolygon());
             for (const auto region:regions) {
-                region.draw(HSV{drawable_region_color, 0.8});
+                region.draw(HSV{drawable_region_color, 0.9});
             }
         }
         explored.drawFrame(0.01, Palette::Lightsteelblue);
@@ -186,7 +191,18 @@ struct BFS {
         const HSV start_color =HSV{ 133.22, 0.24, 0.97 };
         const HSV goal_color = HSV{ 330.59, 0.20, 1.00 };
         anim_appear(t, 0, vertex_circle(0)).draw(start_color);
-        anim_appear(t, 0, vertex_circle(vertices.size() - 1)).draw(goal_color);
+        if (t < 3.4) {
+            Circle C = vertex_circle(vertices.size() - 1);
+            C = {C.center, C.r * 0.5};
+            anim_appear(t, 0, C).draw(goal_color);
+        } else {
+            Circle C = vertex_circle(vertices.size() - 1);
+            const double t1 = kf_end2_vertex_empasiser.shift(3.9 - 0.5).refer(t);
+            const double dy = kf_startend_vertex_dy.shift(3.9 - 0.5).refer(t);
+            Circle C_prime = Circle{C.center, C.r * t1};
+            C_prime = MoveDown(C_prime, dy);
+            C_prime.draw(goal_color);
+        }
     }
     void draw(const double t) {
         draw_edge(t);
