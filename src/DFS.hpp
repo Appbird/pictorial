@@ -19,57 +19,55 @@ Circle MoveDown(const Circle& C, double dy) {
 /// @brief 与えられた文字列の配列`map`で表された配置位置に従って頂点を設置します。10個までなら置けます。
 const Array<Vec2> FromVerticesMap(const Array<String> map);
 
-struct BFS {
+struct DFS {
     HSV drawable_region_color = HSV{ 235, 0.35, 0.20 };
-    const double anime_length = 6.0;
+    const double anime_length = 7.0;
     Vec2 origin_center = {-0.35, -0.35};
     Array<Vec2> vertices = {
         OffsetCircular(origin_center, 0, 0),
 
         OffsetCircular(origin_center, 0.26, Math::Pi*9/16),
-        OffsetCircular(origin_center, 0.26, Math::Pi*12/16),
-        OffsetCircular(origin_center, 0.26, Math::Pi*15/16),
-
         OffsetCircular(origin_center, 0.52, Math::Pi*9/16),
-        OffsetCircular(origin_center, 0.52, Math::Pi*12/16),
-        OffsetCircular(origin_center, 0.52, Math::Pi*15/16),
-
         OffsetCircular(origin_center, 0.80, Math::Pi*9/16),
-        OffsetCircular(origin_center, 0.80, Math::Pi*15/16),
-        OffsetCircular(origin_center, 0.85, Math::Pi*12/16),
 
+        OffsetCircular(origin_center, 0.26, Math::Pi*15/16),
+        OffsetCircular(origin_center, 0.52, Math::Pi*15/16),
+        OffsetCircular(origin_center, 0.80, Math::Pi*15/16),
+
+        OffsetCircular(origin_center, 0.26, Math::Pi*12/16),
+        OffsetCircular(origin_center, 0.52, Math::Pi*12/16),
+        OffsetCircular(origin_center, 0.85, Math::Pi*12/16),
     };
     Array<std::pair<size_t, size_t>> edges = {
-        {0, 1}, {0, 2}, {0, 3},
-        {1, 4}, {2, 5}, {3, 6},
-        {4, 7}, {6, 8}, {5, 9}
+        {0, 1}, {1, 2}, {2, 3},
+        {0, 4}, {4, 5}, {5, 6},
+        {0, 7}, {7, 8}, {8, 9}
     };
 
     // 辺の色
     Array<HSV> map_edge_to_color = {
-        HSV{ 10.14, 0.45, 0.90 },
-        HSV{ 10.14, 0.45, 0.90 },
-        HSV{ 10.14, 0.45, 0.90 },
-        HSV{ 38.84, 0.48, 1.00 },
-        HSV{ 38.84, 0.48, 1.00 },
-        HSV{ 38.84, 0.48, 1.00 },
+        HSV{ 5.14, 0.45, 0.90 },
+        HSV{ 5.14, 0.45, 0.90 },
+        HSV{ 5.14, 0.45, 0.90 },
+        HSV{ 33.84, 0.48, 1.00 },
+        HSV{ 33.84, 0.48, 1.00 },
+        HSV{ 33.84, 0.48, 1.00 },
+        HSV{ 55, 0.40, 1.00 },
         HSV{ 60, 0.40, 1.00 },
-        HSV{ 60, 0.40, 1.00 },
-        HSV{ 60, 0.40, 1.00 },
+        HSV{ 65, 0.40, 1.00 },
     };
     // 頂点の色の色
     Array<HSV> map_vertex_to_color = {
-        HSV{ 10.14, 0.00, 1.00 },
-        HSV{ 10.14, 0.75, 0.90 },
-        HSV{ 10.14, 0.75, 0.90 },
-        HSV{ 10.14, 0.75, 0.90 },
-        HSV{ 38.84, 0.78, 1.00 },
-        HSV{ 38.84, 0.78, 1.00 },
-        HSV{ 38.84, 0.78, 1.00 },
+        HSV{ 5.14, 0.75, 0.90 },
+        HSV{ 5.14, 0.75, 0.90 },
+        HSV{ 5.14, 0.75, 0.90 },
+        HSV{ 5.14, 0.75, 0.90 },
+        HSV{ 33.84, 0.78, 1.00 },
+        HSV{ 33.84, 0.70, 1.00 },
+        HSV{ 33.84, 0.70, 1.00 },
+        HSV{ 55, 0.70, 1.00 },
         HSV{ 60, 0.70, 1.00 },
-        HSV{ 60, 0.70, 1.00 },
-        HSV{ 60, 0.70, 1.00 },
-        HSV{ 0, 0.00, 1.00 },
+        HSV{ 65, 0.70, 1.00 },
     };
 
     KeyAnimator<double> kf_edge_painter {{
@@ -96,52 +94,43 @@ struct BFS {
         {.time = 0.40, .x = 0.01, ease_iplt<EaseInOutQuad>},
         {.time = 0.60, .x = 0.00, ease_iplt<EaseInOutQuad>},
     }};
-    KeyAnimator<double> kf_explored_area_radius {{
-        {.time = 0.0,       .x = 0.0, ease_iplt<EaseOutCubic>},
-        {.time = 0.3,       .x = 0.0, ease_iplt<EaseOutCubic>},
-        {.time = 0.6,       .x = 0.14, ease_iplt<EaseOutCubic>},
-        {.time = 0.7,       .x = 0.12, ease_iplt<EaseOutCubic>},
-        {.time = 0.9,       .x = 0.12, ease_iplt<EaseOutCubic>},
-        {.time = 0.9 + 0.75,        .x = 0.30, ease_iplt<EaseInOutQuint>},
-        {.time = 1.8,               .x = 0.30, ease_iplt<EaseInOutQuint>},
-        {.time = 1.8 + 0.75,        .x = 0.56, ease_iplt<EaseInOutQuint>},
-        {.time = 2.8,               .x = 0.56, ease_iplt<EaseInOutQuint>},
-        {.time = 2.8 + 0.75,        .x = 0.87, ease_iplt<EaseInOutQuint>},
-        {.time = 3.8,               .x = 0.87, ease_iplt<EaseInOutQuint>},
-        {.time = 3.8 + 0.75,        .x = 1.30, ease_iplt<EaseInOutQuint>},
+    KeyAnimator<double> kf_exploredcircle_emphasizer {{
+        {.time = 0.4, .x = 0.0, ease_iplt<EaseOutCubic>},
+        {.time = 0.6, .x = 0.22, ease_iplt<EaseOutCubic>},
+        {.time = 0.7, .x = 0.20, ease_iplt<EaseOutCubic>},
     }};
     
 
     //TODO: 生起時刻と起こるイベントという形で書ければコードの見通しが良くなりそう
     Array<double> evoke_edge_paint;
     Array<double> evoke_points_paint;
-
+    double time_end_vertex_emphasize;
     /// 中実な円で頂点を表現するかどうか
     Array<bool> vertices_frame;
     
-    BFS() {
+    DFS() {
         vertices_frame = Array<bool>(vertices.size(), false);
         vertices_frame.front() = true;
         vertices_frame.back() = true;
 
         // イベント発生時刻を求めておく。
-        const double start = 0.8;
-        const double d = 0.05;
-        const double wave1 = 0.9;
-        const double wave2 = 1.9;
-        const double wave3 = 2.9;
-        const double wave4 = 3.9;
+        const double start = 0.0;
+        const double d = 0.5;
+        const double wave1 = 0.5;
+        const double wave2 = 0.5 + 1.7 * 1;
+        const double wave3 = 0.5 + 1.7 * 2;
         evoke_edge_paint = {
             wave1, wave1 + d, wave1 + 2*d,
             wave2, wave2 + d, wave2 + 2*d,
-            wave3, wave3 + 2*d, wave3 + d
+            wave3, wave3 + d, wave3 + 2*d,
         };
         evoke_points_paint =  {
             start,
-            wave2 - 0.4, wave2 + d - 0.4, wave2 + 2*d - 0.4,
-            wave3 - 0.4, wave3 + d - 0.4, wave3 + 2*d - 0.4,
-            wave3 + 0.4, wave3 + 2*d + 0.4,  wave3 + d + 0.4,
+            wave1 + 0.4, wave1 + d + 0.4, wave1 + 2*d + 0.4,
+            wave2 + 0.4, wave2 + d + 0.4, wave2 + 2*d + 0.4,
+            wave3 + 0.4, wave3 + d + 0.4, wave3 + 2*d + 0.4,
         };
+        time_end_vertex_emphasize = wave3 + 2*d + 0.4;
     }
     Circle vertex_circle(const size_t idx) {
         return Circle{vertices[idx], vertices_frame[idx] ? 0.040 : 0.030};
@@ -162,7 +151,7 @@ struct BFS {
             const auto [i, j] = edges[idx];
             const double edge_width = 0.02;
             const HSV color = map_edge_to_color[idx];
-            const Line basic_line = Connect(vertex_circle(i, 0.02), vertex_circle(j, 0.01));
+            const Line basic_line = Connect(vertex_circle(i, 0.01), vertex_circle(j, 0.01));
 
             // 塗りつぶし量
             // TODO: 未探索の辺はすごく薄く描く？
@@ -182,28 +171,34 @@ struct BFS {
         vertex_circle(vertices.size() - 1).draw(drawable_region_color).drawFrame(0.01, vertex_color);
     }
     void draw_explored_region(const double t) {
-        Circle explored{origin_center, kf_explored_area_radius.refer(t)};
-        {
-            RectF whole_area{-0.5, -0.5, 1.0, 1.0};
-            const auto regions = Geometry2D::Xor(whole_area, explored.asPolygon());
-            for (const auto region:regions) {
-                region.draw(HSV{drawable_region_color, 0.9});
-            }
+        RectF whole_area{-1.0, -1.0, 2.0, 2.0};
+        MultiPolygon explored = {};
+        for (int32_t i = 0; i < vertices.size(); i++) {
+            const double r = kf_exploredcircle_emphasizer.shift(evoke_points_paint[i]).refer(t);
+            explored = Geometry2D::Or(explored, Circle{vertices[i], r}.asPolygon(90));
         }
-        explored.drawFrame(0.01, Palette::Lightsteelblue);
+        Polygon shadow_region = whole_area.asPolygon();
+        Array<Array<Vec2>> explored_array;
+        for (const auto& explored_polygon: explored.asArray()) {
+            auto array = explored_polygon.vertices();
+            explored_array.emplace_back(array.map([&](const Float2& v)->Vec2{ return Vec2{v.x, v.y}; }));
+        }
+        shadow_region.addHoles(explored_array);
+        shadow_region.draw(HSV{drawable_region_color, 0.9});
+        shadow_region.drawFrame(0.005, Palette::Lightsteelblue);
     }
     void draw_start_goal_vertex(const double t) {
         const HSV start_color =HSV{ 133.22, 0.24, 0.97 };
         const HSV goal_color = HSV{ 330.59, 0.20, 1.00 };
         anim_appear(t, 0, vertex_circle(0)).draw(start_color);
-        if (t < 3.4) {
+        if (t < time_end_vertex_emphasize) {
             Circle C = vertex_circle(vertices.size() - 1);
             C = {C.center, C.r * 0.5};
             anim_appear(t, 0, C).draw(goal_color);
         } else {
             Circle C = vertex_circle(vertices.size() - 1);
-            const double t1 = kf_end2_vertex_empasiser.shift(3.9 - 0.5).refer(t);
-            const double dy = kf_startend_vertex_dy.shift(3.9 - 0.5).refer(t);
+            const double t1 = kf_end2_vertex_empasiser.shift(time_end_vertex_emphasize).refer(t);
+            const double dy = kf_startend_vertex_dy.shift(time_end_vertex_emphasize).refer(t);
             Circle C_prime = Circle{C.center, C.r * t1};
             C_prime = MoveDown(C_prime, dy);
             C_prime.draw(goal_color);
